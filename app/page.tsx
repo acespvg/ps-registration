@@ -17,16 +17,15 @@ import { Brain, Building2, ShieldCheck, Sprout, AlertTriangle, RefreshCw, Send, 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 type Stat = {
-  title: string;
   track: string;
   label: string;
+  title: string;
   count: number;
   color: string;
   soft: string;
 };
 
 type FormState = {
-  [x: string]: string;
   teamName: string;
   registrationId: string;
   psId: string;
@@ -44,7 +43,7 @@ const TRACK_META = [
 ];
 
 const INITIAL_FORM: FormState = { teamName: "", registrationId: "", psId: "" };
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:5000";
+const API_BASE_URL = (process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:5000").replace(/\/$/, "");
 
 // ─── Custom Tooltip ───────────────────────────────────────────────────────────
 
@@ -218,22 +217,19 @@ export default function HackathonRegistration() {
   return (
     <>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;800&display=swap');
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-        *, *::before, *::after { box-sizing: border-box; }
+        @keyframes grid-scroll   { to { transform: translateY(60px); } }
+        @keyframes orb-drift     { 0%,100%{transform:translate(0,0) scale(1)} 50%{transform:translate(20px,-16px) scale(1.06)} }
+        @keyframes reveal-up     { from{opacity:0;transform:translateY(24px)} to{opacity:1;transform:translateY(0)} }
+        @keyframes pulse-dot     { 0%,100%{box-shadow:0 0 0 0 rgba(99,102,241,.7)} 70%{box-shadow:0 0 0 8px rgba(99,102,241,0)} }
+        @keyframes spin          { to{transform:rotate(360deg)} }
+        @keyframes shimmer       { 0%{background-position:200% center} 100%{background-position:-200% center} }
+        @keyframes fade-in       { from{opacity:0;transform:scale(0.97)} to{opacity:1;transform:scale(1)} }
+        @keyframes float-badge   { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-4px)} }
+        @keyframes warning-pulse { 0%,100%{opacity:1} 50%{opacity:0.6} }
 
-        @keyframes grid-scroll  { to { transform: translateY(60px); } }
-        @keyframes orb-drift    { 0%,100%{transform:translate(0,0) scale(1)} 50%{transform:translate(20px,-16px) scale(1.06)} }
-        @keyframes reveal-up    { from{opacity:0;transform:translateY(24px)} to{opacity:1;transform:translateY(0)} }
-        @keyframes pulse-dot    { 0%,100%{box-shadow:0 0 0 0 rgba(99,102,241,.7)} 70%{box-shadow:0 0 0 8px rgba(99,102,241,0)} }
-        @keyframes spin         { to{transform:rotate(360deg)} }
-        @keyframes shimmer      { 0%{background-position:200% center} 100%{background-position:-200% center} }
-        @keyframes fade-in      { from{opacity:0;transform:scale(0.97)} to{opacity:1;transform:scale(1)} }
-        @keyframes float-badge  { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-5px)} }
-        @keyframes border-glow  { 0%,100%{box-shadow:0 0 12px rgba(99,102,241,0.3)} 50%{box-shadow:0 0 28px rgba(99,102,241,0.6)} }
-        @keyframes success-pop  { 0%{transform:scale(0.8);opacity:0} 60%{transform:scale(1.05)} 100%{transform:scale(1);opacity:1} }
-        @keyframes warning-pulse{ 0%,100%{opacity:1} 50%{opacity:0.6} }
-
+        /* ── Base ── */
         .reg-page {
           min-height: 100vh;
           background: linear-gradient(180deg, #060c1a 0%, #080f20 55%, #060c1a 100%);
@@ -254,67 +250,94 @@ export default function HackathonRegistration() {
 
         .orb { position: fixed; border-radius: 50%; pointer-events: none; z-index: 0; }
 
+        /* ── Layout ── */
         .page-inner {
           position: relative; z-index: 1;
-          max-width: 980px; margin: 0 auto;
-          padding: 72px 20px 96px;
-          display: flex; flex-direction: column; gap: 48px;
+          max-width: 1000px; margin: 0 auto;
+          padding: 56px 16px 80px;
+          display: flex; flex-direction: column; gap: 36px;
         }
+        @media (min-width: 480px) { .page-inner { padding: 72px 24px 96px; gap: 44px; } }
+        @media (min-width: 768px) { .page-inner { padding: 80px 32px 104px; gap: 48px; } }
 
-        /* ─ Header */
+        /* ── Header ── */
         .page-header { text-align: center; animation: reveal-up 0.7s ease both; }
 
         .header-chip {
           display: inline-flex; align-items: center; gap: 8px;
-          padding: 5px 16px; border-radius: 999px;
+          padding: 5px 14px; border-radius: 999px;
           background: rgba(99,102,241,0.1); border: 1px solid rgba(99,102,241,0.3);
-          margin-bottom: 20px;
+          margin-bottom: 18px;
+          /* wraps text on tiny screens */
+          white-space: normal; text-align: center;
         }
         .header-chip-dot {
-          width: 6px; height: 6px; border-radius: 50%;
+          width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0;
           background: #818cf8; box-shadow: 0 0 8px #818cf8;
           animation: pulse-dot 2s infinite;
         }
         .header-chip-text {
-          color: #a5b4fc; font-size: 10px; font-weight: 700;
-          letter-spacing: 3px; text-transform: uppercase;
+          color: #a5b4fc; font-size: 9px; font-weight: 700;
+          letter-spacing: 2.5px; text-transform: uppercase; line-height: 1.4;
         }
+        @media (min-width: 400px) { .header-chip-text { font-size: 10px; letter-spacing: 3px; } }
 
         .page-title {
-          font-size: clamp(32px, 6vw, 56px); font-weight: 900;
-          letter-spacing: -2px; line-height: 1; margin: 0 0 12px;
+          font-size: clamp(28px, 8vw, 56px); font-weight: 900;
+          letter-spacing: -1.5px; line-height: 1.05; margin: 0 0 12px;
         }
         .page-title-gradient {
           background: linear-gradient(90deg, #6366f1, #38bdf8, #a78bfa);
           -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
         }
-        .page-subtitle { color: rgba(255,255,255,0.38); font-size: 14px; letter-spacing: 0.3px; }
+        .page-subtitle { color: rgba(255,255,255,0.38); font-size: clamp(12px, 3vw, 14px); letter-spacing: 0.3px; }
 
-        /* ─ Warning banner */
+        /* ── Warning banner ── */
         .warning-banner {
           display: flex; align-items: flex-start; gap: 12px;
-          padding: 16px 20px; border-radius: 14px;
+          padding: 14px 16px; border-radius: 14px;
           background: rgba(251,191,36,0.06); border: 1px solid rgba(251,191,36,0.25);
           box-shadow: 0 0 32px rgba(251,191,36,0.05);
           animation: reveal-up 0.7s ease 0.15s both;
         }
         .warning-icon { color: #fbbf24; flex-shrink: 0; margin-top: 1px; animation: warning-pulse 2.5s ease-in-out infinite; }
-        .warning-title { font-weight: 800; font-size: 13px; color: #fde68a; margin-bottom: 4px; letter-spacing: 0.3px; }
-        .warning-body  { font-size: 12px; color: rgba(253,230,138,0.65); line-height: 1.6; }
+        .warning-title { font-weight: 800; font-size: 12px; color: #fde68a; margin-bottom: 4px; letter-spacing: 0.3px; }
+        .warning-body  { font-size: 11.5px; color: rgba(253,230,138,0.65); line-height: 1.6; }
+        @media (min-width: 480px) {
+          .warning-banner { padding: 16px 20px; }
+          .warning-title { font-size: 13px; }
+          .warning-body  { font-size: 12px; }
+        }
 
-        /* ─ Two-column layout */
-        .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; align-items: start; }
-        @media (max-width: 700px) { .two-col { grid-template-columns: 1fr; } }
+        /* ── Two-column grid ── */
+        /* Mobile: single column, chart BELOW form */
+        .two-col {
+          display: grid;
+          grid-template-columns: 1fr;
+          gap: 20px;
+          align-items: start;
+        }
+        /* Tablet+: side-by-side */
+        @media (min-width: 768px) {
+          .two-col {
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+          }
+        }
 
-        /* ─ Card */
+        /* ── Card ── */
         .card {
-          border-radius: 20px; padding: 28px 24px;
+          border-radius: 18px; padding: 22px 18px;
           background: rgba(255,255,255,0.03);
           border: 1px solid rgba(255,255,255,0.07);
           box-shadow: 0 4px 32px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.05);
           backdrop-filter: blur(12px);
           position: relative; overflow: hidden;
+          /* ensure card never bleeds viewport */
+          min-width: 0;
         }
+        @media (min-width: 480px) { .card { padding: 26px 22px; border-radius: 20px; } }
+        @media (min-width: 768px) { .card { padding: 28px 24px; } }
         .card::before {
           content: ''; position: absolute;
           top: 0; left: 15%; right: 15%; height: 1px;
@@ -322,23 +345,29 @@ export default function HackathonRegistration() {
         }
 
         .card-title {
-          font-size: 11px; font-weight: 700; letter-spacing: 3px;
-          text-transform: uppercase; color: #818cf8; margin-bottom: 20px;
+          font-size: 10px; font-weight: 700; letter-spacing: 3px;
+          text-transform: uppercase; color: #818cf8; margin-bottom: 18px;
           display: flex; align-items: center; gap: 8px;
         }
         .card-title-line { flex: 1; height: 1px; background: linear-gradient(90deg, rgba(99,102,241,0.3), transparent); }
 
-        /* ─ Form inputs */
+        /* ── Form ── */
         .field-group { display: flex; flex-direction: column; gap: 14px; }
 
-        .field-label { font-size: 10px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: rgba(255,255,255,0.35); margin-bottom: 6px; }
+        .field-label {
+          display: block; font-size: 10px; font-weight: 700;
+          letter-spacing: 2px; text-transform: uppercase;
+          color: rgba(255,255,255,0.35); margin-bottom: 6px;
+        }
 
         .field-input {
-          width: 100%; padding: 12px 16px; border-radius: 12px;
+          width: 100%; padding: 12px 14px; border-radius: 12px;
           background: rgba(255,255,255,0.04);
           border: 1px solid rgba(255,255,255,0.1);
-          color: #fff; font-size: 13.5px; font-family: 'Trebuchet MS', sans-serif;
+          color: #fff; font-size: 13px; font-family: 'Trebuchet MS', sans-serif;
           outline: none; transition: border 0.25s, box-shadow 0.25s, background 0.25s;
+          /* stop iOS from zooming on focus */
+          -webkit-text-size-adjust: 100%;
         }
         .field-input::placeholder { color: rgba(255,255,255,0.22); }
         .field-input:focus {
@@ -346,53 +375,12 @@ export default function HackathonRegistration() {
           box-shadow: 0 0 0 3px rgba(99,102,241,0.12);
           background: rgba(99,102,241,0.06);
         }
+        .field-input:disabled { opacity: 0.45; cursor: not-allowed; }
 
-        .select-wrap { position: relative; }
-        .select-arrow {
-          position: absolute; right: 14px; top: 50%; transform: translateY(-50%);
-          pointer-events: none; color: rgba(255,255,255,0.3); font-size: 10px;
-        }
-        .field-select {
-          width: 100%; padding: 12px 36px 12px 16px; border-radius: 12px;
-          background: rgba(255,255,255,0.04);
-          border: 1px solid rgba(255,255,255,0.1);
-          color: #fff; font-size: 13.5px; font-family: 'Trebuchet MS', sans-serif;
-          outline: none; appearance: none; cursor: pointer;
-          transition: border 0.25s, box-shadow 0.25s;
-        }
-        .field-select:focus { border-color: rgba(99,102,241,0.55); box-shadow: 0 0 0 3px rgba(99,102,241,0.12); }
-        .field-select option { background: #0f1829; color: #fff; }
-
-        /* ─ Track option pills (radio) */
-        .track-options { display: flex; flex-direction: column; gap: 8px; margin-top: 4px; }
-        .track-option  {
-          display: flex; align-items: center; gap: 10px;
-          padding: 10px 14px; border-radius: 12px; cursor: pointer;
-          border: 1px solid rgba(255,255,255,0.07);
-          background: rgba(255,255,255,0.025);
-          transition: all 0.25s;
-          position: relative; overflow: hidden;
-        }
-        .track-option:hover { border-color: rgba(255,255,255,0.15); background: rgba(255,255,255,0.05); }
-        .track-option.selected { border-color: var(--t-border); background: var(--t-bg); box-shadow: 0 0 18px var(--t-glow); }
-        .track-option-radio {
-          width: 16px; height: 16px; border-radius: 50%; border: 2px solid rgba(255,255,255,0.2);
-          flex-shrink: 0; display: flex; align-items: center; justify-content: center;
-          transition: all 0.2s;
-        }
-        .track-option.selected .track-option-radio { border-color: var(--t-color); }
-        .track-option-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--t-color); box-shadow: 0 0 6px var(--t-color); }
-        .track-option-label { font-size: 10px; font-weight: 700; letter-spacing: 1.5px; color: var(--t-color); text-transform: uppercase; }
-        .track-option-title { font-size: 11.5px; color: rgba(255,255,255,0.55); }
-        .track-option-badge {
-          margin-left: auto; padding: 2px 10px; border-radius: 999px; font-size: 10px; font-weight: 700;
-          background: var(--t-bg2); border: 1px solid var(--t-border2); color: var(--t-color);
-        }
-
-        /* ─ Submit button */
+        /* ── Submit button ── */
         .submit-btn {
           width: 100%; padding: 14px; border-radius: 14px; border: none; cursor: pointer;
-          font-family: 'Trebuchet MS', sans-serif; font-size: 14px; font-weight: 800;
+          font-family: 'Trebuchet MS', sans-serif; font-size: 13px; font-weight: 800;
           letter-spacing: 1px; text-transform: uppercase;
           background: linear-gradient(135deg, #6366f1, #818cf8);
           color: #fff; position: relative; overflow: hidden;
@@ -400,6 +388,8 @@ export default function HackathonRegistration() {
           box-shadow: 0 4px 24px rgba(99,102,241,0.35);
           display: flex; align-items: center; justify-content: center; gap: 8px;
           margin-top: 6px;
+          /* tap highlight fix */
+          -webkit-tap-highlight-color: transparent;
         }
         .submit-btn:hover:not(:disabled) { opacity: 0.92; transform: translateY(-1px); box-shadow: 0 8px 32px rgba(99,102,241,0.45); }
         .submit-btn:active:not(:disabled) { transform: translateY(0); }
@@ -412,9 +402,9 @@ export default function HackathonRegistration() {
         }
         .spinner { animation: spin 0.75s linear infinite; }
 
-        /* ─ Status message */
+        /* ── Status messages ── */
         .status-msg {
-          padding: 12px 16px; border-radius: 12px; font-size: 12.5px; font-weight: 600;
+          padding: 12px 14px; border-radius: 12px; font-size: 12px; font-weight: 600;
           display: flex; align-items: flex-start; gap: 8px;
           animation: fade-in 0.3s ease;
           margin-top: 10px; line-height: 1.5;
@@ -422,40 +412,76 @@ export default function HackathonRegistration() {
         .status-msg.success { background: rgba(52,211,153,0.08); border: 1px solid rgba(52,211,153,0.25); color: #6ee7b7; }
         .status-msg.error   { background: rgba(239,68,68,0.08);  border: 1px solid rgba(239,68,68,0.25);  color: #fca5a5; }
 
-        /* ─ Chart card */
-        .chart-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; flex-wrap: wrap; gap: 8px; }
+        /* ── Chart card ── */
+        .chart-header {
+          display: flex; align-items: center; justify-content: space-between;
+          margin-bottom: 16px; flex-wrap: wrap; gap: 8px;
+        }
         .chart-title-group { display: flex; flex-direction: column; gap: 2px; }
-        .chart-title { font-size: 13px; font-weight: 800; color: #fff; letter-spacing: -0.3px; }
-        .chart-subtitle { font-size: 10px; color: rgba(255,255,255,0.3); letter-spacing: 0.3px; }
+        .chart-title   { font-size: 13px; font-weight: 800; color: #fff; letter-spacing: -0.3px; }
+        .chart-subtitle{ font-size: 10px; color: rgba(255,255,255,0.3); letter-spacing: 0.3px; }
         .chart-refresh-btn {
           display: flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 8px;
           background: rgba(99,102,241,0.08); border: 1px solid rgba(99,102,241,0.2);
           color: #818cf8; font-size: 10px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase;
           cursor: pointer; transition: all 0.2s; font-family: 'Trebuchet MS', sans-serif;
+          -webkit-tap-highlight-color: transparent;
         }
         .chart-refresh-btn:hover { background: rgba(99,102,241,0.16); border-color: rgba(99,102,241,0.4); }
 
-        .last-updated { font-size: 9px; color: rgba(255,255,255,0.2); margin-top: 10px; text-align: right; letter-spacing: 0.5px; }
+        /* The chart wrapper must have an explicit height — ResponsiveContainer needs a sized parent */
+        .chart-wrapper {
+          width: 100%;
+          height: 220px;
+        }
+        @media (min-width: 480px) { .chart-wrapper { height: 240px; } }
+        @media (min-width: 768px) { .chart-wrapper { height: 260px; } }
 
-        /* ─ Insight strip */
+        /* ── Insight strip ── */
         .insight-strip {
-          display: flex; align-items: center; gap: 10px;
-          padding: 10px 16px; border-radius: 12px; margin-bottom: 16px;
+          display: flex; align-items: flex-start; gap: 10px;
+          padding: 10px 14px; border-radius: 12px; margin-bottom: 14px;
           background: rgba(52,211,153,0.06); border: 1px solid rgba(52,211,153,0.2);
           animation: float-badge 4s ease-in-out infinite;
         }
-        .insight-dot { width: 7px; height: 7px; border-radius: 50%; background: #34d399; box-shadow: 0 0 8px #34d399; flex-shrink: 0; animation: pulse-dot 2s infinite; }
-        .insight-text { font-size: 11px; color: rgba(52,211,153,0.85); font-weight: 600; }
+        .insight-dot {
+          width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; margin-top: 3px;
+          background: #34d399; box-shadow: 0 0 8px #34d399;
+          animation: pulse-dot 2s infinite;
+        }
+        .insight-text { font-size: 11px; color: rgba(52,211,153,0.85); font-weight: 600; line-height: 1.5; }
         .insight-text strong { color: #34d399; }
 
-        /* ─ Track legend */
+        /* ── Track legend ── */
         .track-legend { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
         .track-legend-item { display: flex; align-items: center; gap: 5px; }
-        .track-legend-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+        .track-legend-dot  { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
         .track-legend-name { font-size: 10px; color: rgba(255,255,255,0.35); }
 
-        /* recharts axis */
-        .recharts-cartesian-axis-tick-value { fill: rgba(255,255,255,0.35) !important; font-family: 'Trebuchet MS', sans-serif !important; font-size: 11px !important; }
+        /* ── Stat mini-cards ── */
+        .stat-cards {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 10px;
+          margin-top: 14px;
+        }
+        .stat-card {
+          padding: 10px 12px; border-radius: 10px;
+          display: flex; align-items: center; gap: 8px;
+          min-width: 0;
+        }
+        .stat-card-text { flex: 1; min-width: 0; overflow: hidden; }
+        .stat-card-label { font-size: 9px; font-weight: 700; letter-spacing: 1.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .stat-card-count { font-size: 18px; font-weight: 900; color: #fff; line-height: 1.1; }
+
+        .last-updated { font-size: 9px; color: rgba(255,255,255,0.2); margin-top: 10px; text-align: right; letter-spacing: 0.5px; }
+
+        /* ── Recharts overrides ── */
+        .recharts-cartesian-axis-tick-value {
+          fill: rgba(255,255,255,0.35) !important;
+          font-family: 'Trebuchet MS', sans-serif !important;
+          font-size: 10px !important;
+        }
         .recharts-cartesian-grid line { stroke: rgba(255,255,255,0.05) !important; }
       `}</style>
 
@@ -519,7 +545,7 @@ export default function HackathonRegistration() {
                   <div className="field-label">Registration ID</div>
                   <input
                     className="field-input"
-                    placeholder="e.g. 3b55c6a5-85fe-4f7j-b3be-f707bf800f73"
+                    placeholder="e.g. REG20240001"
                     value={form.registrationId}
                     onChange={updateField("registrationId")}
                     disabled={status === "success"}
@@ -542,8 +568,7 @@ export default function HackathonRegistration() {
                     letterSpacing: "0.2px",
                   }}>
                     Your track is automatically assigned based on your PS ID.
-                    Refer to the chart on the right to choose a PS ID from the
-                    track with fewer registrations for a better shot at winning.
+                    Check the <strong style={{ color: "rgba(255,255,255,0.45)" }}>Live Registrations chart</strong> below to find the least competitive track and choose a PS ID from it for a better shot at winning.
                   </div>
                 </div>
 
@@ -582,7 +607,7 @@ export default function HackathonRegistration() {
               <div className="chart-header">
                 <div className="chart-title-group">
                   <div className="chart-title">Live Track Registrations</div>
-                  <div className="chart-subtitle">Auto-refreshes every 15 seconds</div>
+                  <div className="chart-subtitle">Auto-refreshes every 15 s</div>
                 </div>
                 <button className="chart-refresh-btn" onClick={() => fetchStats(true)}>
                   <RefreshCw size={11} className={refreshing ? "spinner" : ""} />
@@ -595,24 +620,41 @@ export default function HackathonRegistration() {
                 <div className="insight-strip">
                   <span className="insight-dot" />
                   <span className="insight-text">
-                    💡 <strong>{minTrack.track} ({minTrack.title ?? ""})</strong> has the fewest registrations — consider it to improve your winning chances!
+                    💡 <strong>{minTrack.track} — {minTrack.title}</strong> has the fewest registrations. Pick a PS ID from this track to boost your winning chances!
                   </span>
                 </div>
               )}
 
-              <ResponsiveContainer width="100%" height={260} key={chartKey}>
-                <BarChart data={stats} margin={{ top: 16, right: 8, left: -20, bottom: 0 }} barCategoryGap="30%">
-                  <XAxis dataKey="track" tick={{ fill: "rgba(255,255,255,0.35)", fontFamily: "'Trebuchet MS',sans-serif", fontSize: 11 }} axisLine={false} tickLine={false} />
-                  <YAxis tick={{ fill: "rgba(255,255,255,0.3)", fontFamily: "'Trebuchet MS',sans-serif", fontSize: 11 }} axisLine={false} tickLine={false} allowDecimals={false} />
-                  <Tooltip content={<CustomTooltip />} cursor={{ fill: "rgba(255,255,255,0.04)", radius: 6 }} />
-                  <Bar dataKey="count" shape={<AnimatedBar />} radius={[6, 6, 0, 0]}>
-                    {stats.map((s, i) => (
-                      <Cell key={i} fill={s.color} fillOpacity={form.track === TRACK_META[i]?.id ? 1 : 0.55} />
-                    ))}
-                    <LabelList dataKey="count" position="top" style={{ fill: "rgba(255,255,255,0.5)", fontSize: "11px", fontFamily: "'Trebuchet MS',sans-serif", fontWeight: 700 }} />
-                  </Bar>
-                </BarChart>
-              </ResponsiveContainer>
+              {/*
+                CRITICAL: ResponsiveContainer requires a parent with a fixed/explicit height.
+                We use the .chart-wrapper class which sets height via CSS (responsive across breakpoints).
+                Do NOT use height="100%" on ResponsiveContainer without a sized parent.
+              */}
+              <div className="chart-wrapper">
+                <ResponsiveContainer width="100%" height="100%" key={chartKey}>
+                  <BarChart data={stats} margin={{ top: 16, right: 4, left: -24, bottom: 0 }} barCategoryGap="28%">
+                    <XAxis
+                      dataKey="track"
+                      tick={{ fill: "rgba(255,255,255,0.35)", fontFamily: "'Trebuchet MS',sans-serif", fontSize: 10 }}
+                      axisLine={false} tickLine={false}
+                    />
+                    <YAxis
+                      tick={{ fill: "rgba(255,255,255,0.3)", fontFamily: "'Trebuchet MS',sans-serif", fontSize: 10 }}
+                      axisLine={false} tickLine={false} allowDecimals={false}
+                    />
+                    <Tooltip content={<CustomTooltip />} cursor={{ fill: "rgba(255,255,255,0.04)", radius: 6 }} />
+                    <Bar dataKey="count" shape={<AnimatedBar />} radius={[6, 6, 0, 0]}>
+                      {stats.map((s, i) => (
+                        <Cell key={i} fill={s.color} fillOpacity={0.75} />
+                      ))}
+                      <LabelList
+                        dataKey="count" position="top"
+                        style={{ fill: "rgba(255,255,255,0.55)", fontSize: "10px", fontFamily: "'Trebuchet MS',sans-serif", fontWeight: 700 }}
+                      />
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
 
               {/* Legend */}
               <div className="track-legend">
@@ -624,18 +666,18 @@ export default function HackathonRegistration() {
                 ))}
               </div>
 
-              {/* Users icon strip */}
-              <div style={{ display:"flex", gap:"12px", marginTop:"16px", flexWrap:"wrap" }}>
+              {/* Stat mini-cards — 2-column grid, responsive */}
+              <div className="stat-cards">
                 {stats.map((s, i) => (
-                  <div key={i} style={{
-                    flex: "1 1 calc(50% - 6px)", padding:"10px 12px", borderRadius:"10px",
-                    background:`${s.soft}0.07)`, border:`1px solid ${s.soft}0.18)`,
-                    display:"flex", alignItems:"center", gap:"8px",
-                  }}>
-                    <Users size={13} color={s.color} />
-                    <div style={{ flex:1, minWidth:0 }}>
-                      <div style={{ fontSize:"9px", color:s.color, fontWeight:700, letterSpacing:"1.5px" }}>{s.track}</div>
-                      <div style={{ fontSize:"16px", fontWeight:900, color:"#fff", lineHeight:1.1 }}>{s.count}</div>
+                  <div
+                    key={i}
+                    className="stat-card"
+                    style={{ background: `${s.soft}0.07)`, border: `1px solid ${s.soft}0.18)` }}
+                  >
+                    <Users size={13} color={s.color} style={{ flexShrink: 0 }} />
+                    <div className="stat-card-text">
+                      <div className="stat-card-label" style={{ color: s.color }}>{s.track}</div>
+                      <div className="stat-card-count">{s.count}</div>
                     </div>
                   </div>
                 ))}
