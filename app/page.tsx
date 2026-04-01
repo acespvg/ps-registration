@@ -12,7 +12,16 @@ import {
   Cell,
   LabelList,
 } from "recharts";
-import { Brain, Building2, ShieldCheck, Sprout, AlertTriangle, RefreshCw, Send, Users } from "lucide-react";
+import {
+  Brain,
+  Building2,
+  ShieldCheck,
+  Sprout,
+  AlertTriangle,
+  RefreshCw,
+  Send,
+  Users,
+} from "lucide-react";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -36,14 +45,45 @@ type SubmitStatus = "idle" | "loading" | "success" | "error";
 // ─── Constants ────────────────────────────────────────────────────────────────
 
 const TRACK_META = [
-  { id: "track1", label: "Track I",   title: "Intelligent Systems",         color: "#6366f1", soft: "rgba(99,102,241,",  Icon: Brain       },
-  { id: "track2", label: "Track II",  title: "Cyber Security & Smart City", color: "#38bdf8", soft: "rgba(56,189,248,",  Icon: Building2   },
-  { id: "track3", label: "Track III", title: "Blockchain",                   color: "#a78bfa", soft: "rgba(167,139,250,", Icon: ShieldCheck },
-  { id: "track4", label: "Track IV",  title: "Future Learning",              color: "#34d399", soft: "rgba(52,211,153,",  Icon: Sprout      },
+  {
+    id: "track1",
+    label: "Track I",
+    title: "Intelligent Systems",
+    color: "#6366f1",
+    soft: "rgba(99,102,241,",
+    Icon: Brain,
+  },
+  {
+    id: "track2",
+    label: "Track II",
+    title: "Cyber Security & Smart City",
+    color: "#38bdf8",
+    soft: "rgba(56,189,248,",
+    Icon: Building2,
+  },
+  {
+    id: "track3",
+    label: "Track III",
+    title: "Blockchain",
+    color: "#a78bfa",
+    soft: "rgba(167,139,250,",
+    Icon: ShieldCheck,
+  },
+  {
+    id: "track4",
+    label: "Track IV",
+    title: "Future Learning",
+    color: "#34d399",
+    soft: "rgba(52,211,153,",
+    Icon: Sprout,
+  },
 ];
 
 const INITIAL_FORM: FormState = { teamName: "", registrationId: "", psId: "" };
-const API_BASE_URL = (process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:5000").replace(/\/$/, "");
+const API_BASE_URL = (
+  process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:5000"
+).replace(/\/$/, "");
+const TRACK_LIMIT = 18;
 
 // ─── Custom Tooltip ───────────────────────────────────────────────────────────
 
@@ -51,22 +91,50 @@ function CustomTooltip({ active, payload, label }: any) {
   if (!active || !payload?.length) return null;
   const meta = TRACK_META.find((t) => t.label === label);
   const color = meta?.color ?? "#6366f1";
-  const soft  = meta?.soft  ?? "rgba(99,102,241,";
+  const soft = meta?.soft ?? "rgba(99,102,241,";
   return (
-    <div style={{
-      background: "rgba(6,12,26,0.95)",
-      border: `1px solid ${soft}0.35)`,
-      borderRadius: "12px",
-      padding: "10px 16px",
-      boxShadow: `0 0 24px ${soft}0.2)`,
-      backdropFilter: "blur(12px)",
-    }}>
-      <div style={{ fontSize: "10px", fontWeight: 700, letterSpacing: "2px", color, fontFamily: "'Trebuchet MS',sans-serif", marginBottom: "4px" }}>
+    <div
+      style={{
+        background: "rgba(6,12,26,0.95)",
+        border: `1px solid ${soft}0.35)`,
+        borderRadius: "12px",
+        padding: "10px 16px",
+        boxShadow: `0 0 24px ${soft}0.2)`,
+        backdropFilter: "blur(12px)",
+      }}
+    >
+      <div
+        style={{
+          fontSize: "10px",
+          fontWeight: 700,
+          letterSpacing: "2px",
+          color,
+          fontFamily: "'Trebuchet MS',sans-serif",
+          marginBottom: "4px",
+        }}
+      >
         {meta?.title ?? label}
       </div>
-      <div style={{ fontSize: "22px", fontWeight: 900, color: "#fff", fontFamily: "'Trebuchet MS',sans-serif", lineHeight: 1 }}>
+      <div
+        style={{
+          fontSize: "22px",
+          fontWeight: 900,
+          color: "#fff",
+          fontFamily: "'Trebuchet MS',sans-serif",
+          lineHeight: 1,
+        }}
+      >
         {payload[0].value}
-        <span style={{ fontSize: "11px", color: "rgba(255,255,255,0.4)", marginLeft: "5px", fontWeight: 500 }}>teams</span>
+        <span
+          style={{
+            fontSize: "11px",
+            color: "rgba(255,255,255,0.4)",
+            marginLeft: "5px",
+            fontWeight: 500,
+          }}
+        >
+          teams
+        </span>
       </div>
     </div>
   );
@@ -84,13 +152,21 @@ function AnimatedBar(props: any) {
   }, []);
 
   const displayHeight = animated ? height : 0;
-  const displayY     = animated ? y      : y + height;
+  const displayY = animated ? y : y + height;
 
   return (
     <rect
-      x={x} y={displayY} width={width} height={displayHeight} rx={6} ry={6}
+      x={x}
+      y={displayY}
+      width={width}
+      height={displayHeight}
+      rx={6}
+      ry={6}
       fill={fill}
-      style={{ transition: "height 0.85s cubic-bezier(0.34,1.56,0.64,1), y 0.85s cubic-bezier(0.34,1.56,0.64,1)" }}
+      style={{
+        transition:
+          "height 0.85s cubic-bezier(0.34,1.56,0.64,1), y 0.85s cubic-bezier(0.34,1.56,0.64,1)",
+      }}
     />
   );
 }
@@ -98,10 +174,18 @@ function AnimatedBar(props: any) {
 // ─── Hook: useInView ──────────────────────────────────────────────────────────
 
 function useInView(threshold = 0.1) {
-  const ref  = useRef<HTMLDivElement>(null);
+  const ref = useRef<HTMLDivElement>(null);
   const [inView, setInView] = useState(false);
   useEffect(() => {
-    const io = new IntersectionObserver(([e]) => { if (e.isIntersecting) { setInView(true); io.disconnect(); } }, { threshold });
+    const io = new IntersectionObserver(
+      ([e]) => {
+        if (e.isIntersecting) {
+          setInView(true);
+          io.disconnect();
+        }
+      },
+      { threshold },
+    );
     if (ref.current) io.observe(ref.current);
     return () => io.disconnect();
   }, []);
@@ -137,15 +221,15 @@ function useAutoRefresh(callback: () => void, interval = 15000) {
 // ─── Main Component ───────────────────────────────────────────────────────────
 
 export default function HackathonRegistration() {
-  const [form,         setForm]         = useState<FormState>(INITIAL_FORM);
-  const [stats,        setStats]        = useState<Stat[]>([]);
-  const [status,       setStatus]       = useState<SubmitStatus>("idle");
-  const [message,      setMessage]      = useState("");
-  const [lastUpdated,  setLastUpdated]  = useState<Date | null>(null);
-  const [refreshing,   setRefreshing]   = useState(false);
-  const [chartKey,     setChartKey]     = useState(0);   // force re-mount for animation
+  const [form, setForm] = useState<FormState>(INITIAL_FORM);
+  const [stats, setStats] = useState<Stat[]>([]);
+  const [status, setStatus] = useState<SubmitStatus>("idle");
+  const [message, setMessage] = useState("");
+  const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
+  const [refreshing, setRefreshing] = useState(false);
+  const [chartKey, setChartKey] = useState(0); // force re-mount for animation
 
-  const [formRef,  formInView]  = useInView(0.05);
+  const [formRef, formInView] = useInView(0.05);
   const [chartRef, chartInView] = useInView(0.05);
 
   // ── Fetch stats ─────────────────────────────────────────────────────────────
@@ -154,17 +238,22 @@ export default function HackathonRegistration() {
   const fetchStats = async (showSpinner = false) => {
     if (showSpinner) setRefreshing(true);
     try {
-      const res  = await axios.get(`${API_BASE_URL}/stats`);
+      const res = await axios.get(`${API_BASE_URL}/stats`);
       const data = res.data;
       setStats(
-        TRACK_META.map((t) => ({
-          track: t.label,
-          label: t.label,
-          title: t.title,
-          count: data[t.id] ?? 0,
-          color: t.color,
-          soft:  t.soft,
-        }))
+        TRACK_META.map((t) => {
+          const count = data[t.id] ?? 0;
+          const isFull = count >= TRACK_LIMIT;
+
+          return {
+            track: t.label,
+            label: t.label,
+            title: t.title,
+            count,
+            color: isFull ? "#ef4444" : t.color, // 🔴 FULL TRACK
+            soft: t.soft,
+          };
+        }),
       );
       setChartKey((k) => k + 1);
       setLastUpdated(new Date());
@@ -180,7 +269,11 @@ export default function HackathonRegistration() {
   // ── Submit ──────────────────────────────────────────────────────────────────
 
   const handleSubmit = async () => {
-    if (!form.teamName.trim() || !form.registrationId.trim() || !form.psId.trim()) {
+    if (
+      !form.teamName.trim() ||
+      !form.registrationId.trim() ||
+      !form.psId.trim()
+    ) {
       setStatus("error");
       setMessage("Please fill in all fields before submitting.");
       return;
@@ -191,26 +284,43 @@ export default function HackathonRegistration() {
       // Server derives the track from psId via ProblemStatement relation —
       // we only send the three fields the backend expects.
       const res = await axios.post(`${API_BASE_URL}/register`, {
-        teamName:       form.teamName.trim(),
+        teamName: form.teamName.trim(),
         registrationId: form.registrationId.trim(),
-        psId:           form.psId.trim(),
+        psId: form.psId.trim(),
       });
       setStatus("success");
       setMessage(res.data.message ?? "Registration successful!");
       fetchStats();
     } catch (err: any) {
       setStatus("error");
-      setMessage(err.response?.data?.message ?? "Something went wrong. Please try again.");
+
+      const msg = err.response?.data?.message;
+
+      if (msg?.includes("Track is full")) {
+        setMessage(
+          "🚫 This track is already full. Please choose another PS ID.",
+        );
+      } else if (msg?.includes("Invalid Registration ID")) {
+        setMessage("❌ Invalid Registration ID. Please check your ID.");
+      } else if (msg?.includes("Team name does not match")) {
+        setMessage("❌ Team name does not match your Registration ID.");
+      } else if (msg?.includes("already selected")) {
+        setMessage("⚠️ You have already selected a problem statement.");
+      } else {
+        setMessage(msg || "Something went wrong. Try again.");
+      }
     }
   };
 
   // ── Helpers ──────────────────────────────────────────────────────────────────
 
-  const updateField = (field: keyof FormState) =>
-    (e: React.ChangeEvent<HTMLInputElement>) =>
+  const updateField =
+    (field: keyof FormState) => (e: React.ChangeEvent<HTMLInputElement>) =>
       setForm((prev) => ({ ...prev, [field]: e.target.value }));
 
-  const minTrack = stats.length ? stats.reduce((a, b) => (a.count <= b.count ? a : b)) : null;
+  const minTrack = stats.length
+    ? stats.reduce((a, b) => (a.count <= b.count ? a : b))
+    : null;
 
   // ─────────────────────────────────────────────────────────────────────────────
 
@@ -488,40 +598,77 @@ export default function HackathonRegistration() {
       <div className="reg-page">
         <div className="bg-grid" />
         {/* Orbs */}
-        <div className="orb" style={{ top:"-100px", right:"-100px", width:"480px", height:"480px", background:"radial-gradient(circle,rgba(99,102,241,0.14) 0%,transparent 70%)", animation:"orb-drift 9s ease-in-out infinite" }} />
-        <div className="orb" style={{ bottom:"-100px", left:"-100px", width:"440px", height:"440px", background:"radial-gradient(circle,rgba(56,189,248,0.10) 0%,transparent 70%)", animation:"orb-drift 11s ease-in-out infinite reverse" }} />
+        <div
+          className="orb"
+          style={{
+            top: "-100px",
+            right: "-100px",
+            width: "480px",
+            height: "480px",
+            background:
+              "radial-gradient(circle,rgba(99,102,241,0.14) 0%,transparent 70%)",
+            animation: "orb-drift 9s ease-in-out infinite",
+          }}
+        />
+        <div
+          className="orb"
+          style={{
+            bottom: "-100px",
+            left: "-100px",
+            width: "440px",
+            height: "440px",
+            background:
+              "radial-gradient(circle,rgba(56,189,248,0.10) 0%,transparent 70%)",
+            animation: "orb-drift 11s ease-in-out infinite reverse",
+          }}
+        />
 
         <div className="page-inner">
-
           {/* ── Header ── */}
           <div className="page-header">
             <div className="header-chip">
               <span className="header-chip-dot" />
-              <span className="header-chip-text">Hackathon · 4 Tracks · ₹1,80,000 Prize</span>
+              <span className="header-chip-text">
+                Hackathon · 4 Tracks · ₹1,80,000 Prize
+              </span>
             </div>
             <h1 className="page-title">
-              Team{" "}
-              <span className="page-title-gradient">Registration</span>
+              Team <span className="page-title-gradient">Registration</span>
             </h1>
-            <p className="page-subtitle">Choose your track wisely — the competition starts here.</p>
+            <p className="page-subtitle">
+              Choose your track wisely — the competition starts here.
+            </p>
           </div>
 
           {/* ── Warning Banner ── */}
           <div className="warning-banner">
             <AlertTriangle size={18} className="warning-icon" />
             <div>
-              <div className="warning-title">⚠️ One-Time Registration — No Changes After Submission</div>
+              <div className="warning-title">
+                ⚠️ One-Time Registration — No Changes After Submission
+              </div>
               <div className="warning-body">
-                This is a permanent registration. Once submitted, your team name, registration ID, PS ID, and track selection <strong style={{color:"#fde68a"}}>cannot be modified</strong>. Review all details carefully before clicking Submit. Contact the organizers immediately for any errors.
+                This is a permanent registration. Once submitted, your team
+                name, registration ID, PS ID, and track selection{" "}
+                <strong style={{ color: "#fde68a" }}>cannot be modified</strong>
+                . Review all details carefully before clicking Submit. Contact
+                the organizers immediately for any errors.
               </div>
             </div>
           </div>
 
           {/* ── Two-column layout ── */}
           <div className="two-col">
-
             {/* ── Registration Form ── */}
-            <div ref={formRef} className="card" style={{ opacity: formInView ? 1 : 0, transform: formInView ? "translateY(0)" : "translateY(28px)", transition: "opacity 0.6s ease, transform 0.6s ease" }}>
+            <div
+              ref={formRef}
+              className="card"
+              style={{
+                opacity: formInView ? 1 : 0,
+                transform: formInView ? "translateY(0)" : "translateY(28px)",
+                transition: "opacity 0.6s ease, transform 0.6s ease",
+              }}
+            >
               <div className="card-title">
                 Registration Form
                 <div className="card-title-line" />
@@ -562,13 +709,23 @@ export default function HackathonRegistration() {
                     onChange={updateField("psId")}
                     disabled={status === "success"}
                   />
-                  <div style={{
-                    marginTop: "7px", fontSize: "10.5px",
-                    color: "rgba(255,255,255,0.28)", lineHeight: 1.5,
-                    letterSpacing: "0.2px",
-                  }}>
+                  <div
+                    style={{
+                      marginTop: "7px",
+                      fontSize: "10.5px",
+                      color: "rgba(255,255,255,0.28)",
+                      lineHeight: 1.5,
+                      letterSpacing: "0.2px",
+                    }}
+                  >
                     Your track is automatically assigned based on your PS ID.
-                    Check the <strong style={{ color: "rgba(255,255,255,0.45)" }}>Live Registrations chart</strong> below to find the least competitive track and choose a PS ID from it for a better shot at winning.
+                    Each track allows only{" "}
+                    <strong style={{ color: "#fff" }}>18 teams</strong> (first
+                    come, first serve). Check the{" "}
+                    <strong style={{ color: "rgba(255,255,255,0.45)" }}>
+                      Live Registrations chart
+                    </strong>{" "}
+                    below to avoid full tracks.
                   </div>
                 </div>
 
@@ -578,13 +735,21 @@ export default function HackathonRegistration() {
                   onClick={handleSubmit}
                   disabled={status === "loading" || status === "success"}
                 >
-                  {status !== "loading" && <span className="submit-btn-shimmer" />}
+                  {status !== "loading" && (
+                    <span className="submit-btn-shimmer" />
+                  )}
                   {status === "loading" ? (
-                    <><RefreshCw size={15} className="spinner" /> Registering…</>
+                    <>
+                      <RefreshCw size={15} className="spinner" /> Registering…
+                    </>
                   ) : status === "success" ? (
-                    <><span>✓</span> Registered!</>
+                    <>
+                      <span>✓</span> Registered!
+                    </>
                   ) : (
-                    <><Send size={14} /> Submit Registration</>
+                    <>
+                      <Send size={14} /> Submit Registration
+                    </>
                   )}
                 </button>
 
@@ -603,14 +768,31 @@ export default function HackathonRegistration() {
             </div>
 
             {/* ── Chart ── */}
-            <div ref={chartRef} className="card" style={{ opacity: chartInView ? 1 : 0, transform: chartInView ? "translateY(0)" : "translateY(28px)", transition: "opacity 0.6s ease 0.15s, transform 0.6s ease 0.15s" }}>
+            <div
+              ref={chartRef}
+              className="card"
+              style={{
+                opacity: chartInView ? 1 : 0,
+                transform: chartInView ? "translateY(0)" : "translateY(28px)",
+                transition:
+                  "opacity 0.6s ease 0.15s, transform 0.6s ease 0.15s",
+              }}
+            >
               <div className="chart-header">
                 <div className="chart-title-group">
                   <div className="chart-title">Live Track Registrations</div>
-                  <div className="chart-subtitle">Auto-refreshes every 15 s</div>
+                  <div className="chart-subtitle">
+                    Auto-refreshes every 15 s
+                  </div>
                 </div>
-                <button className="chart-refresh-btn" onClick={() => fetchStats(true)}>
-                  <RefreshCw size={11} className={refreshing ? "spinner" : ""} />
+                <button
+                  className="chart-refresh-btn"
+                  onClick={() => fetchStats(true)}
+                >
+                  <RefreshCw
+                    size={11}
+                    className={refreshing ? "spinner" : ""}
+                  />
                   Refresh
                 </button>
               </div>
@@ -620,7 +802,12 @@ export default function HackathonRegistration() {
                 <div className="insight-strip">
                   <span className="insight-dot" />
                   <span className="insight-text">
-                    💡 <strong>{minTrack.track} — {minTrack.title}</strong> has the fewest registrations. Pick a PS ID from this track to boost your winning chances!
+                    💡{" "}
+                    <strong>
+                      {minTrack.track} — {minTrack.title}
+                    </strong>{" "}
+                    has the fewest registrations. Pick a PS ID from this track
+                    to boost your winning chances!
                   </span>
                 </div>
               )}
@@ -632,24 +819,52 @@ export default function HackathonRegistration() {
               */}
               <div className="chart-wrapper">
                 <ResponsiveContainer width="100%" height="100%" key={chartKey}>
-                  <BarChart data={stats} margin={{ top: 16, right: 4, left: -24, bottom: 0 }} barCategoryGap="28%">
+                  <BarChart
+                    data={stats}
+                    margin={{ top: 16, right: 4, left: -24, bottom: 0 }}
+                    barCategoryGap="28%"
+                  >
                     <XAxis
                       dataKey="track"
-                      tick={{ fill: "rgba(255,255,255,0.35)", fontFamily: "'Trebuchet MS',sans-serif", fontSize: 10 }}
-                      axisLine={false} tickLine={false}
+                      tick={{
+                        fill: "rgba(255,255,255,0.35)",
+                        fontFamily: "'Trebuchet MS',sans-serif",
+                        fontSize: 10,
+                      }}
+                      axisLine={false}
+                      tickLine={false}
                     />
                     <YAxis
-                      tick={{ fill: "rgba(255,255,255,0.3)", fontFamily: "'Trebuchet MS',sans-serif", fontSize: 10 }}
-                      axisLine={false} tickLine={false} allowDecimals={false}
+                      tick={{
+                        fill: "rgba(255,255,255,0.3)",
+                        fontFamily: "'Trebuchet MS',sans-serif",
+                        fontSize: 10,
+                      }}
+                      axisLine={false}
+                      tickLine={false}
+                      allowDecimals={false}
                     />
-                    <Tooltip content={<CustomTooltip />} cursor={{ fill: "rgba(255,255,255,0.04)", radius: 6 }} />
-                    <Bar dataKey="count" shape={<AnimatedBar />} radius={[6, 6, 0, 0]}>
+                    <Tooltip
+                      content={<CustomTooltip />}
+                      cursor={{ fill: "rgba(255,255,255,0.04)", radius: 6 }}
+                    />
+                    <Bar
+                      dataKey="count"
+                      shape={<AnimatedBar />}
+                      radius={[6, 6, 0, 0]}
+                    >
                       {stats.map((s, i) => (
                         <Cell key={i} fill={s.color} fillOpacity={0.75} />
                       ))}
                       <LabelList
-                        dataKey="count" position="top"
-                        style={{ fill: "rgba(255,255,255,0.55)", fontSize: "10px", fontFamily: "'Trebuchet MS',sans-serif", fontWeight: 700 }}
+                        dataKey="count"
+                        position="top"
+                        style={{
+                          fill: "rgba(255,255,255,0.55)",
+                          fontSize: "10px",
+                          fontFamily: "'Trebuchet MS',sans-serif",
+                          fontWeight: 700,
+                        }}
                       />
                     </Bar>
                   </BarChart>
@@ -660,7 +875,13 @@ export default function HackathonRegistration() {
               <div className="track-legend">
                 {TRACK_META.map((t, i) => (
                   <div key={i} className="track-legend-item">
-                    <span className="track-legend-dot" style={{ background: t.color, boxShadow: `0 0 5px ${t.color}` }} />
+                    <span
+                      className="track-legend-dot"
+                      style={{
+                        background: t.color,
+                        boxShadow: `0 0 5px ${t.color}`,
+                      }}
+                    />
                     <span className="track-legend-name">{t.label}</span>
                   </div>
                 ))}
@@ -672,12 +893,37 @@ export default function HackathonRegistration() {
                   <div
                     key={i}
                     className="stat-card"
-                    style={{ background: `${s.soft}0.07)`, border: `1px solid ${s.soft}0.18)` }}
+                    style={{
+                      background: `${s.soft}0.07)`,
+                      border: `1px solid ${s.soft}0.18)`,
+                    }}
                   >
-                    <Users size={13} color={s.color} style={{ flexShrink: 0 }} />
+                    <Users
+                      size={13}
+                      color={s.color}
+                      style={{ flexShrink: 0 }}
+                    />
                     <div className="stat-card-text">
-                      <div className="stat-card-label" style={{ color: s.color }}>{s.track}</div>
-                      <div className="stat-card-count">{s.count}</div>
+                      <div
+                        className="stat-card-label"
+                        style={{ color: s.color }}
+                      >
+                        {s.track}
+                      </div>
+                      <div className="stat-card-count">
+                        {s.count}
+                        {s.count >= TRACK_LIMIT && (
+                          <span
+                            style={{
+                              color: "#ef4444",
+                              fontSize: "10px",
+                              marginLeft: "6px",
+                            }}
+                          >
+                            FULL
+                          </span>
+                        )}
+                      </div>
                     </div>
                   </div>
                 ))}
@@ -689,7 +935,6 @@ export default function HackathonRegistration() {
                 </div>
               )}
             </div>
-
           </div>
         </div>
       </div>
